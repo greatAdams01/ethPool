@@ -1,0 +1,14 @@
+node_modules
+.env
+coverage
+coverage.json
+typechain
+/typechain-types
+typechain-types
+package-lock.json
+.env.example
+yarn.lock
+
+#Hardhat files
+cache
+artifacts
