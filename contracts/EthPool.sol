@@ -7,14 +7,14 @@ import "hardhat/console.sol";
 // 604800
 
 contract EthPool is Ownable{
-    uint256 public lastRewardTime;
     struct Reward {
         uint256 timestamp;
         uint256 totalAmount;
     }
+
     Reward[] public rewards;
 
-    mapping(address => uint256) public stakeAmount;
+    mapping(address => uint256) public stakedAmount;
     mapping(address => uint256) public depositDate;
     address[] public stakers;
 
@@ -27,13 +27,13 @@ contract EthPool is Ownable{
         // Check if staker exist
         bool userExist = checkIfUserExist();
         if(userExist) {
-            stakeAmount[msg.sender] += msg.value;
+            stakedAmount[msg.sender] += msg.value;
             depositDate[msg.sender] = block.timestamp;
             emit DepositMade(msg.sender, msg.value, block.timestamp);
             return;
         }
 
-        stakeAmount[msg.sender] = msg.value;
+        stakedAmount[msg.sender] = msg.value;
         depositDate[msg.sender] = block.timestamp;
         stakers.push(msg.sender);
         emit DepositMade(msg.sender, msg.value, block.timestamp);
@@ -59,12 +59,12 @@ contract EthPool is Ownable{
         emit DepositMade(msg.sender, msg.value, block.timestamp);
     }
 
-    function calculatePecent() public view returns(uint256) {
+    function calculatePecentage() public view returns(uint256) {
         // uint timeOfDeposit  = depositDate[msg.sender];
         // require(block.timestamp >= timeOfDeposit + weekDays);
 
         uint256 amountInPool = checkAmountInPool();
-        uint256 userAmount = stakeAmount[msg.sender];
+        uint256 userAmount = stakedAmount[msg.sender];
         uint256 percentage = (userAmount * 100) / amountInPool;
         return percentage;
     }
@@ -75,7 +75,7 @@ contract EthPool is Ownable{
     }
 
     function withdraw() payable public {
-        uint256 percentage = calculatePecent();
+        uint256 percentage = calculatePecentage();
         uint256 _timeStamp = depositDate[msg.sender];
         uint256 amountPool = getReward(_timeStamp);
         uint256 stakerAmount = percentage % amountPool;
@@ -85,19 +85,36 @@ contract EthPool is Ownable{
         require(success, "Failed to send Ether");
     }
 
-    function getReward(uint256 _timeStamp) public view returns(uint256) {
-        for (
-            uint256 rewardIndex = 0;
-            rewardIndex < rewards.length;
-            rewardIndex++
-        ) {
-            uint256 amount;
-            Reward memory reward = rewards[rewardIndex];
-            if(_timeStamp <= reward.timestamp) {
-                amount = reward.totalAmount;
-                return amount;
-            }
-            return amount;
+    function getReward(uint256 _timeStamp) public view returns(uint256 _amount) {
+        uint256 amount;
+        for(uint256 _rewardIndex=0; _rewardIndex < rewards.length; _rewardIndex++) {
+          Reward memory reward = rewards[_rewardIndex];
+          if(_timeStamp <= reward.timestamp) {
+              amount = reward.totalAmount;
+              return _amount;
+          }
         }
+        return amount;
     }
+
+    // function withdraws() payable onlyOwner public {
+    //     payable(msg.sender).transfer(address(this).balance);
+    //     for(uint256 funderIndex=0; funderIndex < funders.length; funderIndex++) {
+    //         address funder = funders[funderIndex];
+    //         stakedAmount[funder] = 0;
+    //         console.log(funderIndex);
+    //     }
+    //     funders = new address[](0);
+    // }
 }
+
+// for (
+//             uint256 _rewardIndex = 0; _rewardIndex < stakers.length; _rewardIndex++) {
+//             uint256 amount;
+//             Reward memory reward = rewards[_rewardIndex];
+//             if(_timeStamp <= reward.timestamp) {
+//                 amount = reward.totalAmount;
+//                 return _amount;
+//             }
+//             return amount;
+//         }
