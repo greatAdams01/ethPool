@@ -8,6 +8,7 @@ typechain-types
 package-lock.json
 .env.example
 yarn.lock
+/deployments
 
 #Hardhat files
 cache
